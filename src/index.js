@@ -14,10 +14,8 @@ const onSearchImg = (e) => {
   clearGallery();
   e.preventDefault();
   showImg(fetchImages(inputEl.value));
-  showSuccess(fetchImages(inputEl.value));
   page += 1
   btnEl.classList.remove('hidden');
-  
 }
 
 const onClickLoadMore = (e) => {
@@ -26,8 +24,8 @@ const onClickLoadMore = (e) => {
 }
 
 const renderImg = (array) => {
- const gallery = array.map(({webformatURL, largeImageURL, tags, likes, views, comments, downloads}) => {
-  return `<div class="gallery__item">
+  const gallery = array.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
+    return `<div class="gallery__item">
   <a class="next" href=${largeImageURL}><img src= ${webformatURL} alt="${tags}" loading="lazy" width="350" height="200px" /></a>
   <div class="info">
     <p class="info-item">
@@ -44,61 +42,54 @@ const renderImg = (array) => {
     </p>
   </div>
 </div>`
-})
-.join("")
+  })
+    .join("")
 
- listEl.insertAdjacentHTML('beforeend', gallery);
- let lightbox = new SimpleLightbox('.gallery a');
- let ias = new InfiniteAjaxScroll('.gallery', {
-  item: '.gallery__item',
-  next: onClickLoadMore,
-  pagination: '.load-more',
-});
+  listEl.insertAdjacentHTML('beforeend', gallery);
+  let lightbox = new SimpleLightbox('.gallery a');
+  let ias = new InfiniteAjaxScroll('.gallery', {
+    item: '.gallery__item',
+    next: onClickLoadMore,
+    pagination: '.load-more',
+  });
 }
 
 const showImg = async (response) => {
-  const array = await response;
-  const totalPages = 100 / limit;
 
-  if (array.hits.length > 0) {
-    return renderImg(array.hits);
-  }
+  try {
+    const array = await response;
+    const totalPages = 100 / limit;
 
-  if (page > totalPages) {
-    btnEl.classList.add('hidden');
-    return Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
-  }
-  
-  if (array.hits.length === 0) {
-    btnEl.classList.add('hidden');
-    return Notiflix.Notify.warning("Sorry, there are no images matching your search query. Please try again.")
-  }
-  
-  const { height: cardHeight } = document
-  .querySelector(".gallery")
-  .firstElementChild.getBoundingClientRect();
+    if (array.hits.length > 0) {
+      return renderImg(array.hits);
+    }
 
-  window.scrollBy({
-  top: cardHeight * 2,
-  behavior: "smooth",
-  });
+    if (page > totalPages) {
+      btnEl.classList.add('hidden');
+      return Notiflix.Notify.info("We're sorry, but you've reached the end of search results.")
+    }
 
-  lightbox.refresh()
+    if (array.hits.length === 0) {
+      btnEl.classList.add('hidden');
+      return Notiflix.Notify.warning("Sorry, there are no images matching your search query. Please try again.")
+    }
 
-}
+    const { height: cardHeight } = document
+      .querySelector(".gallery")
+      .firstElementChild.getBoundingClientRect();
+      window.scrollBy({
+      top: cardHeight * 2,
+      behavior: "smooth",
+    });
 
-const showSuccess = async (response) => {
-  const allResult = await response;
-
-  if (allResult.hits.length > 0) {
-    Notiflix.Notify.success(`Hooray! We found ${allResult.totalHits} images.`)
+    lightbox.refresh()
+  } catch (error) {
+    console.log(error);
   }
 }
 
 const clearGallery = () => {
-  btnEl.classList.toggle('hidden');
-  page = 1;
-  listEl.innerHTML = '';
+  btnEl.classList.toggle('hidden'); page = 1; listEl.innerHTML = '';
 }
 
 btnEl.addEventListener('click', onClickLoadMore);
